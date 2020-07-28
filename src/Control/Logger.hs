@@ -17,6 +17,8 @@ module Control.Logger
   , tryJustWarn
   , logExceptions
   , LogSeverity(..)
+  , renderLogLevel
+  , parseLogLevel
   , oneoffLog
   , LoggingMonad
   , LogSource
@@ -210,3 +212,19 @@ compactCallStack =
     . map (\(f, l) -> f <> " (" <> compactLoc l <> ")")
     . getCallStack
   where compactLoc loc = srcLocFile loc <> ":" <> show (srcLocStartLine loc)
+
+parseLogLevel :: Text -> Either String LogSeverity
+parseLogLevel t = case Text.strip t of
+  "debug" -> pure Debug
+  "info"  -> pure Info
+  "warn"  -> pure Warn
+  "error" -> pure Error
+  _       -> Left
+    "Unreadable log level. Possible values: debug, info, warn and error"
+
+renderLogLevel :: LogSeverity -> Text
+renderLogLevel = \case
+  Debug   -> "debug"
+  Info    -> "info"
+  Warn    -> "warn"
+  Error   -> "error"
