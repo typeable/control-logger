@@ -36,6 +36,7 @@ module Control.Logger
 
 import           Control.Has
 import           Control.Logger.Internal
+import           Control.Logger.Orphans ()
 import           Control.Monad.Catch
 import qualified Data.List as List
 import           Data.Text (Text)
