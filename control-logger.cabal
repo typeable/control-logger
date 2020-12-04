@@ -1,9 +1,9 @@
+cabal-version:       2.4
 name:                control-logger
 version:             0.1.0.0
 synopsis: Logger used by all projects
-license:             AllRightsReserved
+license-file:        LICENSE
 build-type:          Simple
-cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
