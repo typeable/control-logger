@@ -51,53 +51,53 @@ logError
   :: (LoggingMonad r m)
   => Text
   -> m ()
-logError = withFrozenCallStack . logMsg Error
+logError msg = withFrozenCallStack (logMsg Error msg)
 
 logDebug
   :: (LoggingMonad r m)
   => Text
   -> m ()
-logDebug = withFrozenCallStack . logMsg Debug
+logDebug msg = withFrozenCallStack (logMsg Debug msg)
 
 logInfo
   :: (LoggingMonad r m)
   => Text
   -> m ()
-logInfo = withFrozenCallStack . logMsg Info
+logInfo msg = withFrozenCallStack (logMsg Info msg)
 
 logWarn
   :: (LoggingMonad r m)
   => Text
   -> m ()
-logWarn = withFrozenCallStack . logMsg Warn
+logWarn msg = withFrozenCallStack (logMsg Warn msg)
 
 logInfoWith
   :: (MonadIO m, HasCallStack)
   => Logger
   -> Text
   -> m ()
-logInfoWith logger = withFrozenCallStack . logMsgWith logger Info
+logInfoWith logger msg = withFrozenCallStack (logMsgWith logger Info msg)
 
 logDebugWith
   :: (MonadIO m, HasCallStack)
   => Logger
   -> Text
   -> m ()
-logDebugWith logger = withFrozenCallStack . logMsgWith logger Debug
+logDebugWith logger msg = withFrozenCallStack (logMsgWith logger Debug msg)
 
 logWarnWith
   :: (MonadIO m, HasCallStack)
   => Logger
   -> Text
   -> m ()
-logWarnWith logger = withFrozenCallStack . logMsgWith logger Warn
+logWarnWith logger msg = withFrozenCallStack (logMsgWith logger Warn msg)
 
 logErrorWith
   :: (MonadIO m, HasCallStack)
   => Logger
   -> Text
   -> m ()
-logErrorWith logger = withFrozenCallStack . logMsgWith logger Error
+logErrorWith logger msg = withFrozenCallStack (logMsgWith logger Error msg)
 
 -- | Log exceptions occured in computation and just ignore them.
 tryLogError
