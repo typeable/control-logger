@@ -142,7 +142,8 @@ logExceptions ma = catch ma $ \e -> do
   throwM e
 
 oneoffLog :: MonadIO m => Logger -> LogSeverity -> Text -> m ()
-oneoffLog logger s t = flip runReaderT logger $ logMsg s t
+oneoffLog logger s t =
+  withFrozenCallStack (flip runReaderT logger $ logMsg s t)
 
 fileLogger :: MonadIO m => FilePath -> m Logger
 fileLogger fp = fastFunc <$> liftIO (newFileLoggerSet defaultBufSize fp)
