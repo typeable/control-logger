@@ -15,6 +15,7 @@ module Control.Logger.Katip
   ) where
 
 import           Control.EnvT
+import           Control.Has.Katip ()
 import           Control.Lens hiding ((.=))
 import           Control.Logger.Internal
 import           Control.Logger.Katip.Scribes.Reopenable
