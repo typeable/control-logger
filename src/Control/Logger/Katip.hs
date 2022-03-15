@@ -94,10 +94,9 @@ registerElastic gitRev verbosity ElasticServer{..} permitF env =
         (Just u, Just p) -> applyBasicAuth u p
         _                -> id
 
--- | Doubles the value of @msg@ key into the @msg-keyword@ and adds
--- the @rev-hash@ value to each record. The @msg-keyword@ is needed to
--- group errors by message. The @rev-hash@ is needed for many purposes
--- and for grouping as well.
+-- | Adds the @rev-hash@ value to each record.
+-- Early we copied `msg` to `msg-keyword` here but drop it
+-- because purpose of this duplication is not clear.
 ourFormatter
   :: Text
   -- ^ git revision string
@@ -107,13 +106,11 @@ ourFormatter gitRev verb = ItemFunc $ \item -> go $ ourItemJson verb item
   where
     go :: Value -> Value
     go = \case
-      Object h -> Object $ setRev $ dupMsg h
+      Object h -> Object $ setRev h
       x        -> x -- drop exception here?
       where
         setRev :: HM.HashMap Text Value -> HM.HashMap Text Value
         setRev = HM.insert "rev-hash" (toJSON gitRev)
-        dupMsg :: HM.HashMap Text Value -> HM.HashMap Text Value
-        dupMsg m = HM.alter (const $ HM.lookup "msg" m) "msg-keyword" m
 
 ourMapping :: K.MappingName ESV5 -> Value
 ourMapping mn = object
