@@ -17,7 +17,6 @@ library
   exposed-modules:     Control.Logger.Internal
   build-depends:       base
                      , aeson
-                     , bloodhound
                      , bytestring
                      , control-has
                      , control-has-katip

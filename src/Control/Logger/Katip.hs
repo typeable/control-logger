@@ -2,10 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Control.Logger.Katip
-  ( ElasticServer(..)
-  , logSeverityToKSeverity
-  , registerElastic
-  , maybeElastic
+  ( logSeverityToKSeverity
   , KatipContextTState(..)
   , getKatipLogger
   , ourFormatter
@@ -20,42 +17,17 @@ import           Control.Lens hiding ((.=))
 import           Control.Logger.Internal
 import           Control.Logger.Katip.Scribes.Reopenable
 import           Data.Aeson hiding (Error)
-import           Data.ByteString (ByteString)
 import qualified Data.HashMap.Strict as HM
 import           Data.Proxy as P
 import           Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy.Builder as T.Builder
-import           Database.V5.Bloodhound
 import           Katip as K hiding (logMsg)
 import           Katip.Core (ItemFunc(..), LocJs(..), ProcessIDJs(..))
 import           Katip.Monadic (KatipContextTState(..))
 import           Katip.Scribes.ElasticSearch
 import           Katip.Scribes.ElasticSearch.Internal as K
-import           Network.HTTP.Client
 
-
-data ElasticServer = ElasticServer
-  { _esServer   :: !(Maybe Server)
-  , _esUsername :: !(Maybe ByteString)
-  , _esPassword :: !(Maybe ByteString)
-  } deriving (Eq, Show)
-
-instance FromJSON ElasticServer where
-  parseJSON = withObject "ElasticServer" $ \obj -> ElasticServer
-    <$> (obj .: "server")
-    <*> (fmap T.encodeUtf8 <$> (obj .: "username"))
-    <*> (fmap T.encodeUtf8 <$> (obj .: "password"))
-
-instance ToJSON ElasticServer where
-  toJSON es = object
-    [ "server"   .= fmap fromServer (_esServer es)
-    , "username" .= fmap T.decodeUtf8 (_esUsername es)
-    , "password" .= fmap T.decodeUtf8 (_esPassword es)
-    ]
-    where
-      fromServer (Server s) = s
 
 logSeverityToKSeverity :: LogSeverity -> Severity
 logSeverityToKSeverity = \case
@@ -64,35 +36,6 @@ logSeverityToKSeverity = \case
   Warn -> WarningS
   Error  -> ErrorS
 
-registerElastic
-  :: Text
-  -- ^ git revision
-  -> Verbosity
-  -> ElasticServer
-  -> PermitFunc
-  -> LogEnv
-  -> IO LogEnv
-registerElastic gitRev verbosity ElasticServer{..} permitF env =
-  case _esServer of
-    Nothing -> return env
-    Just server -> do
-      elastic <- do
-        mgr <- newManager defaultManagerSettings
-        let
-          bloodhoundEnv = (mkBHEnv server mgr)
-            { bhRequestHook = requestHook }
-        mkEsScribe cfg bloodhoundEnv permitF verbosity
-      registerScribe "elastic" elastic defaultScribeSettings env
-    where
-      cfg = (defaultEsScribeCfgV5 ixName mappingName)
-        { essItemFormatter     = ourFormatter gitRev
-        , essIndexMappingValue = ourMapping mappingName }
-        where
-          ixName  = IndexName katipIndexNameString
-          mappingName = MappingName "logs"
-      requestHook = return . case (_esUsername, _esPassword) of
-        (Just u, Just p) -> applyBasicAuth u p
-        _                -> id
 
 -- | Adds the @rev-hash@ value to each record.
 -- Early we copied `msg` to `msg-keyword` here but drop it
@@ -167,12 +110,6 @@ ourItemJson verb item = formatItem $
     , "ns"     .= T.intercalate "." (unNamespace _itemNamespace)
     , "loc"    .= fmap LocJs _itemLoc
     ]
-
--- | Return empty server if Nothing
-maybeElastic :: Maybe ElasticServer -> ElasticServer
-maybeElastic = \case
-  Nothing -> ElasticServer Nothing Nothing Nothing
-  Just a  -> a
 
 instance LogItem Object where
   payloadKeys V0 _ = SomeKeys []
