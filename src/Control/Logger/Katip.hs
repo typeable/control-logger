@@ -6,7 +6,6 @@ module Control.Logger.Katip
   , KatipContextTState(..)
   , getKatipLogger
   , ourFormatter
-  , ourMapping
   , katipIndexNameString
   , reopenableFileLog
   ) where
@@ -18,15 +17,12 @@ import           Control.Logger.Internal
 import           Control.Logger.Katip.Scribes.Reopenable
 import           Data.Aeson hiding (Error)
 import qualified Data.HashMap.Strict as HM
-import           Data.Proxy as P
 import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Builder as T.Builder
 import           Katip as K hiding (logMsg)
 import           Katip.Core (ItemFunc(..), LocJs(..), ProcessIDJs(..))
 import           Katip.Monadic (KatipContextTState(..))
-import           Katip.Scribes.ElasticSearch
-import           Katip.Scribes.ElasticSearch.Internal as K
 
 
 logSeverityToKSeverity :: LogSeverity -> Severity
@@ -54,41 +50,6 @@ ourFormatter gitRev verb = ItemFunc $ \item -> go $ ourItemJson verb item
       where
         setRev :: HM.HashMap Text Value -> HM.HashMap Text Value
         setRev = HM.insert "rev-hash" (toJSON gitRev)
-
-ourMapping :: K.MappingName ESV5 -> Value
-ourMapping mn = object
-  [fromMappingName prx mn .= object ["properties" .= object prs]]
-  where
-    prs =
-      [ unanalyzedString "thread"
-      , unanalyzedString "sev"
-      , unanalyzedString "pid"
-      -- ns is frequently fulltext searched
-      , analyzedString "ns"
-      -- we want message to be fulltext searchable
-      , analyzedString "msg"
-      -- we want to group by the message as well
-      , unanalyzedString "msg-keyword"
-      -- we want to group by revision hash
-      , unanalyzedString "rev-hash"
-      , "loc" .= locType
-      , unanalyzedString "host"
-      , unanalyzedString "env"
-      , "at" .= dateType
-      , unanalyzedString "app"
-      ]
-    prx = P.Proxy :: P.Proxy ESV5
-    unanalyzedString k = k .= unanalyzedStringSpec prx
-    analyzedString k = k .= analyzedStringSpec prx
-    locType = object ["properties" .= object locPairs]
-    locPairs =
-      [ unanalyzedString "loc_pkg"
-      , unanalyzedString "loc_mod"
-      , unanalyzedString "loc_ln"
-      , unanalyzedString "loc_fn"
-      , unanalyzedString "loc_col"
-      ]
-    dateType = object ["format" .= esDateFormat, "type" .= String "date"]
 
 katipIndexNameString :: Text
 katipIndexNameString = "antorica-b2b-logs"

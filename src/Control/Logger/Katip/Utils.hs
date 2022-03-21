@@ -7,7 +7,6 @@ module Control.Logger.Katip.Utils
   , registerFileScribe
   , setLoggingCtx
   , ourFormatter
-  , ourMapping
   , getKatipLogger
   , logSeverityToKSeverity
   ) where
