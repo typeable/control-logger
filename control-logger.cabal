@@ -17,7 +17,6 @@ library
   exposed-modules:     Control.Logger.Internal
   build-depends:       base
                      , aeson
-                     , bloodhound
                      , bytestring
                      , control-has
                      , control-has-katip
@@ -34,7 +33,6 @@ library
                      , unordered-containers
   if !impl(ghcjs)
     build-depends:     katip
-                     , katip-elasticsearch
                      , optparse-applicative
   default-language:    Haskell2010
   default-extensions:  RankNTypes

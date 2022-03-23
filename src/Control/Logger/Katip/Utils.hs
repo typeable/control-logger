@@ -3,15 +3,10 @@
 module Control.Logger.Katip.Utils
   ( katipIndexNameString
   , module Katip.Monadic
-  , ElasticServer(..)
-  , elasticServer
-  , maybeElastic
-  , registerElastic
   , LogFormat(..)
   , registerFileScribe
   , setLoggingCtx
   , ourFormatter
-  , ourMapping
   , getKatipLogger
   , logSeverityToKSeverity
   ) where
@@ -25,50 +20,17 @@ import           Control.Logger.Internal as L
 import           Control.Logger.Katip as L
 import           Data.Aeson hiding (Error)
 import           Data.Aeson.Text
-import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Builder as B.Builder
 import qualified Data.HashMap.Strict as HM
 import           Data.Text (Text)
-import qualified Data.Text as T
-import           Data.Text.Encoding
 import qualified Data.Text.Lazy.Builder as T.Builder
 import qualified Data.Text.Lazy.Encoding as T.Lazy
-import           Database.V5.Bloodhound as BH
 import           Katip as K hiding (logMsg)
 import           Katip.Core (ItemFunc(..))
 import           Katip.Monadic (KatipContextTState(..))
 import qualified Katip.Scribes.Handle as K
-import           Options.Applicative
 import           System.IO
 
-
-elasticServer :: Parser ElasticServer
-elasticServer =
-  ElasticServer
-    <$> optional elasticServerAddress
-    <*> optional elasticServerUsername
-    <*> optional elasticServerPassword
-
-elasticServerAddress :: Parser Server
-elasticServerAddress = Server <$> option
-  (T.pack <$> str)
-  (long "elastic-server" <> metavar "ELASTIC_SERVER" <> help
-    "Address of elastic search server"
-  )
-
-elasticServerUsername :: Parser ByteString
-elasticServerUsername = option
-  (encodeUtf8 . T.pack <$> str)
-  (long "elastic-server-username" <> metavar "ELASTIC_SERVER_USERNAME" <> help
-    "Elastic server username"
-  )
-
-elasticServerPassword :: Parser ByteString
-elasticServerPassword = option
-  (encodeUtf8 . T.pack <$> str)
-  (long "elastic-server-password" <> metavar "ELASTIC_SERVER_PASSWORD" <> help
-    "Elastic server password"
-  )
 
 -- | How to format logs
 data LogFormat
