@@ -7,14 +7,12 @@ module Control.Logger.Katip
   , getKatipLogger
   , ourFormatter
   , katipIndexNameString
-  , reopenableFileLog
   ) where
 
 import           Control.EnvT
 import           Control.Has.Katip ()
 import           Control.Lens hiding ((.=))
 import           Control.Logger.Internal
-import           Control.Logger.Katip.Scribes.Reopenable
 import           Data.Aeson hiding (Error)
 import qualified Data.HashMap.Strict as HM
 import           Data.Text (Text)
