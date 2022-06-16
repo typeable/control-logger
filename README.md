@@ -1,3 +1,3 @@
 # control-logger
 
-Utilities for logging with DTT projects
+Utilities for logging
