@@ -1,9 +1,5 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 module Control.Logger.Internal
   ( Logger(..)
-  , loggerContext
-  , loggerAction
   , runLogger
   , LogSeverity(..)
   , LoggingMonad
@@ -12,11 +8,10 @@ module Control.Logger.Internal
   ) where
 
 import Control.Has
-import Control.Lens
 import Control.DeepSeq
 import Data.Aeson (ToJSON, FromJSON, Object)
+import Data.Functor.Const
 import Data.Text (Text)
-import GHC.Generics (Generic)
 import GHC.Stack
 
 
@@ -38,8 +33,6 @@ data Logger
 
 instance NFData Logger
 
-makeLenses ''Logger
-
 instance Semigroup Logger where
   (Logger ctx1 l1) <> (Logger ctx2 l2) = Logger ctx'
     $ \ctx stack s t -> l1 ctx stack s t >> l2 ctx stack s t
@@ -57,7 +50,7 @@ logMsg
   -> Text
   -> m ()
 logMsg s t = withFrozenCallStack $ do
-  logger <- view part
+  logger <- asks (getConst . part Const)
   logMsgWith logger s t
 
 logMsgWith

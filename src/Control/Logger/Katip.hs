@@ -11,7 +11,6 @@ module Control.Logger.Katip
 
 import           Control.EnvT
 import           Control.Has.Katip ()
-import           Control.Lens hiding ((.=))
 import           Control.Logger.Internal
 import           Data.Aeson hiding (Error)
 import           Data.Text (Text)
@@ -35,7 +34,7 @@ katipIndexNameString = "antorica-b2b-logs"
 
 ourItemJson :: LogItem a => Verbosity -> Item a -> Value
 ourItemJson verb item = formatItem $
-  item & itemPayload %~ payloadObject verb
+  item { _itemPayload = payloadObject verb $ _itemPayload item }
   where
   formatItem Item{..} = object
     [ "app"    .= T.intercalate "." (unNamespace _itemApp)

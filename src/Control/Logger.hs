@@ -1,7 +1,6 @@
 
 module Control.Logger
   ( Logger
-  , loggerContext
   , logMsg
   , logMsgWith
   , logInfo
@@ -30,8 +29,6 @@ module Control.Logger
   , stdoutLogger
   , defaultFastFunc
   , compactCallStack
-  , st
-  , ToObject(..)
   ) where
 
 import           Control.Has
@@ -43,9 +40,7 @@ import           Data.Text (Text)
 import qualified Data.Text as Text
 import           Data.Time
 import           GHC.Stack
-import           Katip (ToObject(..))
 import           System.Log.FastLogger
-import           Text.Shakespeare.Text (st)
 
 logError
   :: (LoggingMonad r m)

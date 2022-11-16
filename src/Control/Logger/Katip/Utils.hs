@@ -1,4 +1,3 @@
-{-# LANGUAGE ImplicitParams #-}
 {-# LANGUAGE CPP #-}
 
 module Control.Logger.Katip.Utils
@@ -6,17 +5,11 @@ module Control.Logger.Katip.Utils
   , module Katip.Monadic
   , LogFormat(..)
   , registerFileScribe
-  , setLoggingCtx
   , getKatipLogger
   , logSeverityToKSeverity
   ) where
 
-import           Control.EnvT
 import           Control.Exception
-import           Control.Has
-import           Control.Lens hiding ((.=))
-import           Control.Logger as L
-import           Control.Logger.Internal as L
 import           Control.Logger.Katip as L
 import           Data.Aeson hiding (Error)
 import           Data.Aeson.Text
@@ -81,7 +74,7 @@ registerFileScribe gitRev verbosity format filePath permitF additions logenv =
 -- | JSON formatter that adds the specified fields to the output
 customJsonFormat
   :: forall a. LogItem a => Text -> KeyMap Value -> ItemFormatter a
-customJsonFormat gitRev additions withColor verb i = (mappend "\n") $
+customJsonFormat gitRev additions withColor verb i = mappend "\n" $
   -- Here we reimplement the standard formater because we want the
   -- additional key/value pairs to be added at the top level.
   -- So we can't use the LogWithAdditions like we do for bracket format
@@ -113,13 +106,3 @@ instance LogItem a => LogItem (LogWithAdditions a) where
 instance ToObject a => ToObject (LogWithAdditions a) where
   toObject (LogWithAdditions additions a) =
     HM.union additions (toObject a)
-
-setLoggingCtx
-  :: (Has Logger r, Monad m)
-  => Object
-  -> ReaderT r m a
-  -> ReaderT r m a
-setLoggingCtx ctx' = local (part %~ go)
-  where
-    go (Logger ctx f) =
-      Logger (ctx <> ctx') f
