@@ -58,16 +58,17 @@ logMsg
   -> m ()
 logMsg s t = withFrozenCallStack $ do
   logger <- view part
-  logMsgWith logger s t
+  logMsgWith logger mempty s t
 
 logMsgWith
   :: (MonadIO m, HasCallStack)
   => Logger
+  -> Object
   -> LogSeverity
   -> Text
   -> m ()
-logMsgWith logger s t =
-  liftIO $ runLogger logger callStack s t
+logMsgWith logger extra s t =
+  liftIO $ runLogger logger extra callStack s t
 
-runLogger :: Logger -> CallStack -> LogSeverity -> Text -> IO ()
-runLogger (Logger ctx logger) = logger ctx
+runLogger :: Logger -> Object -> CallStack -> LogSeverity -> Text -> IO ()
+runLogger (Logger ctx logger) extra = logger (ctx <> extra)
