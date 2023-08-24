@@ -76,28 +76,28 @@ logInfoWith
   => Logger
   -> Text
   -> m ()
-logInfoWith logger msg = withFrozenCallStack (logMsgWith logger Info msg)
+logInfoWith logger msg = withFrozenCallStack (logMsgWith logger mempty Info msg)
 
 logDebugWith
   :: (MonadIO m, HasCallStack)
   => Logger
   -> Text
   -> m ()
-logDebugWith logger msg = withFrozenCallStack (logMsgWith logger Debug msg)
+logDebugWith logger msg = withFrozenCallStack (logMsgWith logger mempty Debug msg)
 
 logWarnWith
   :: (MonadIO m, HasCallStack)
   => Logger
   -> Text
   -> m ()
-logWarnWith logger msg = withFrozenCallStack (logMsgWith logger Warn msg)
+logWarnWith logger msg = withFrozenCallStack (logMsgWith logger mempty Warn msg)
 
 logErrorWith
   :: (MonadIO m, HasCallStack)
   => Logger
   -> Text
   -> m ()
-logErrorWith logger msg = withFrozenCallStack (logMsgWith logger Error msg)
+logErrorWith logger msg = withFrozenCallStack (logMsgWith logger mempty Error msg)
 
 -- | Log exceptions occured in computation and just ignore them.
 tryLogError
