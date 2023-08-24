@@ -1,0 +1,14 @@
+resolver: lts-21.8
+
+packages:
+- .
+
+extra-deps:
+  - git: https://github.com/typeable/control-has.git
+    commit: 017dd75cc5299dab13fc18812e7fe5ef6c1329ba
+
+  - git: https://github.com/typeable/control-has-katip.git
+    commit: e9ac1b8d0fe17d8b3670d2fe344965756393ae09
+
+nix:
+  packages: [zlib]

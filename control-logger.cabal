@@ -5,6 +5,11 @@ synopsis: Logger used by all projects
 license-file:        LICENSE
 build-type:          Simple
 
+flag katip
+  default: True
+  manual: False
+  description: Enable Katip support
+
 library
   hs-source-dirs:      src
   ghc-options:         -Wall
@@ -30,7 +35,7 @@ library
                      , text
                      , time
                      , unordered-containers
-  if !impl(ghcjs)
+  if !impl(ghcjs) || !flag(katip)
     build-depends:     katip
                      , optparse-applicative
   default-language:    Haskell2010
