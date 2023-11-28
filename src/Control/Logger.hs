@@ -1,4 +1,4 @@
-
+{-# LANGUAGE CPP #-}
 module Control.Logger
   ( Logger
   , logMsg
@@ -33,7 +33,9 @@ module Control.Logger
 
 import           Control.Has
 import           Control.Logger.Internal
+#ifdef WITH_ORPHANS
 import           Control.Logger.Orphans ()
+#endif
 import           Control.Monad.Catch
 import qualified Data.List as List
 import           Data.Text (Text)

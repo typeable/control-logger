@@ -10,6 +10,11 @@ flag katip
   default: True
   manual: False
 
+flag orphans
+  description: MonadLogger orphan instance
+  manual: True
+  default: True
+
 library
   hs-source-dirs:      src
   ghc-options:         -Wall
@@ -18,7 +23,10 @@ library
   if !impl(ghcjs) || flag(katip)
     exposed-modules:  Control.Logger.Katip
                       Control.Logger.Katip.Utils
-                      Control.Logger.Orphans
+    if flag(orphans)
+      cpp-options: -DWITH_ORPHANS
+      exposed-modules: Control.Logger.Orphans
+  exposed-modules:     Control.Logger.Internal
   build-depends:       base
                      , aeson
                      , bytestring
@@ -27,11 +35,12 @@ library
                      , exceptions
                      , fast-logger
                      , http-client
-                     , monad-logger
                      , mtl
                      , text
                      , time
                      , unordered-containers
+  if flag(orphans)
+    build-depends:     monad-logger
   if !impl(ghcjs)
     build-depends:     katip
                      , optparse-applicative
