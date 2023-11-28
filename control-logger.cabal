@@ -40,7 +40,7 @@ library
                      , unordered-containers
   if flag(orphans)
     build-depends:     monad-logger
-  if !impl(ghcjs) || !flag(katip)
+  if !impl(ghcjs) && flag(katip)
     build-depends:     katip
                      , optparse-applicative
                      , control-has-katip
