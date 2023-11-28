@@ -26,7 +26,6 @@ library
     if flag(orphans)
       cpp-options: -DWITH_ORPHANS
       exposed-modules: Control.Logger.Orphans
-  exposed-modules:     Control.Logger.Internal
   build-depends:       base
                      , aeson
                      , bytestring
