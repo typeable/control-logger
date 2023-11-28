@@ -20,12 +20,12 @@ library
   ghc-options:         -Wall
   exposed-modules:     Control.Logger
                        Control.Logger.Internal
-  if !impl(ghcjs) || flag(katip)
+  if !impl(ghcjs) && flag(katip)
     exposed-modules:  Control.Logger.Katip
                       Control.Logger.Katip.Utils
-    if flag(orphans)
-      cpp-options: -DWITH_ORPHANS
-      exposed-modules: Control.Logger.Orphans
+  if flag(orphans)
+    cpp-options: -DWITH_ORPHANS
+    exposed-modules: Control.Logger.Orphans
   build-depends:       base
                      , aeson
                      , bytestring
