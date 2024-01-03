@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 
 module Control.Logger.Internal
   ( Logger(..)
@@ -16,7 +17,6 @@ import Control.Lens
 import Control.DeepSeq
 import Data.Aeson (ToJSON, FromJSON, Object)
 import Data.Text (Text)
-import GHC.Generics (Generic)
 import GHC.Stack
 
 

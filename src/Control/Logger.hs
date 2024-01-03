@@ -1,4 +1,4 @@
-
+{-# LANGUAGE CPP #-}
 module Control.Logger
   ( Logger
   , loggerContext
@@ -36,16 +36,20 @@ module Control.Logger
 
 import           Control.Has
 import           Control.Logger.Internal
-import           Control.Logger.Orphans ()
+import           Control.Logger.Orphans  ()
 import           Control.Monad.Catch
-import qualified Data.List as List
-import           Data.Text (Text)
-import qualified Data.Text as Text
+import qualified Data.List               as List
+import           Data.Text               (Text)
+import qualified Data.Text               as Text
 import           Data.Time
 import           GHC.Stack
-import           Katip (ToObject(..))
+import           Katip                   (ToObject (..))
 import           System.Log.FastLogger
-import           Text.Shakespeare.Text (st)
+import           Text.Shakespeare.Text   (st)
+#if MIN_VERSION_base(4,18,0)
+import Control.Monad
+#else
+#endif
 
 logError
   :: (LoggingMonad r m)
