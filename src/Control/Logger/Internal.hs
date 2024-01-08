@@ -18,6 +18,9 @@ import Control.DeepSeq
 import Data.Aeson (ToJSON, FromJSON, Object)
 import Data.Text (Text)
 import GHC.Stack
+#if MIN_VERSION_mtl(2,3,0)
+import Control.Monad.IO.Class
+#endif
 
 
 data LogSeverity

@@ -46,9 +46,9 @@ import           GHC.Stack
 import           Katip                   (ToObject (..))
 import           System.Log.FastLogger
 import           Text.Shakespeare.Text   (st)
-#if MIN_VERSION_base(4,18,0)
+#if MIN_VERSION_mtl(2,3,0)
 import Control.Monad
-#else
+import Control.Monad.IO.Class
 #endif
 
 logError
