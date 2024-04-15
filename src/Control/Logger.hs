@@ -2,6 +2,7 @@
 module Control.Logger
   ( Logger
   , loggerContext
+  , scrubber
   , logMsg
   , logMsgWith
   , logInfo
