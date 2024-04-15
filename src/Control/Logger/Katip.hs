@@ -56,7 +56,7 @@ instance LogItem Object where
   payloadKeys _ _  = AllKeys
 
 getKatipLogger :: KatipContextTState -> Logger
-getKatipLogger katipCtx = Logger (toObject . ltsContext $ katipCtx)
+getKatipLogger katipCtx = Logger (toObject . ltsContext $ katipCtx) id
   $ \ ctx stack s msg ->
     let ?callStack = stack
     in

@@ -32,13 +32,17 @@ module Control.Logger
   , compactCallStack
   , st
   , ToObject(..)
+  , withScrubber
+  , censoring
   ) where
 
 import           Control.Has
+import           Control.Lens hiding (censoring)
 import           Control.Logger.Internal
 import           Control.Logger.Orphans  ()
 import           Control.Monad.Catch
 import qualified Data.List               as List
+import           Data.Monoid
 import           Data.Text               (Text)
 import qualified Data.Text               as Text
 import           Data.Time
@@ -103,6 +107,27 @@ logErrorWith
   -> m ()
 logErrorWith logger msg = withFrozenCallStack (logMsgWith logger Error msg)
 
+-- | Adjust the scrubbing function.
+withScrubber
+  :: forall r m a. (Has Logger r, MonadReader r m)
+  => Endo (Text -> Text)
+  -> m a
+  -> m a
+withScrubber scrubF = local expandScrubber
+  where
+    expandScrubber :: r -> r
+    expandScrubber = over part (over scrubber (appEndo scrubF))
+
+-- | Run an action while censoring additional text from logs
+censoring
+  :: (Has Logger r, MonadReader r m)
+  => Text
+  -> m a
+  -> m a
+censoring txt = withScrubber (Endo (. censored))
+  where
+    censored = Text.replace txt "XXXX"
+
 -- | Log exceptions occured in computation and just ignore them.
 tryLogError
   :: (MonadIO m, MonadCatch m, Has Logger r, MonadReader r m)
@@ -153,14 +178,14 @@ fileLogger :: MonadIO m => FilePath -> m Logger
 fileLogger fp = fastFunc <$> liftIO (newFileLoggerSet defaultBufSize fp)
 
 silentLogger :: Logger
-silentLogger = Logger mempty (\_ _ _ _ -> return ())
+silentLogger = Logger mempty id (\_ _ _ _ -> return ())
 
 -- | Logger which flushes buffer after each message. This is useful with
 -- stderrLogger.
 flushingFastFunc
   :: LogSeverity -> LoggerSet -> Logger
 flushingFastFunc minLogLevel loggerSet =
-  Logger mempty $ \_ stack logLevel msg ->
+  Logger mempty id $ \_ stack logLevel msg ->
     when (logLevel >= minLogLevel) $ do
       ts <- getCurrentTime
       pushLogStr loggerSet
@@ -184,14 +209,14 @@ flushingStderrLogger =
 -- | Make our outdated 'Logger' of fast-logger's 'LoggerSet'
 fastFunc :: LoggerSet -> Logger
 fastFunc loggerSet =
-  Logger mempty $ \_ _ _ msg -> pushLogStr loggerSet $ toLogStr msg
+  Logger mempty id $ \_ _ _ msg -> pushLogStr loggerSet $ toLogStr msg
 
 type LogSource = Text
 
 -- | Default logger tests and same things.
 defaultFastFunc :: LogSource -> LogSeverity -> LoggerSet -> Logger
 defaultFastFunc loc minLogLevel loggerSet =
-  Logger mempty $ \_ stack s msg -> when (s >= minLogLevel) $ do
+  Logger mempty id $ \_ stack s msg -> when (s >= minLogLevel) $ do
     ts <- getCurrentTime
     pushLogStr loggerSet $ formatLogStr ts stack loc s (toLogStr msg)
 

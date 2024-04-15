@@ -1,4 +1,3 @@
-{-# LANGUAGE ImplicitParams #-}
 {-# LANGUAGE CPP #-}
 
 module Control.Logger.Katip.Utils
@@ -121,5 +120,5 @@ setLoggingCtx
   -> ReaderT r m a
 setLoggingCtx ctx' = local (part %~ go)
   where
-    go (Logger ctx f) =
-      Logger (ctx <> ctx') f
+    go (Logger ctx scrbber f) =
+      Logger (ctx <> ctx') scrbber f

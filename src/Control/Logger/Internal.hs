@@ -5,6 +5,7 @@ module Control.Logger.Internal
   ( Logger(..)
   , loggerContext
   , loggerAction
+  , scrubber
   , runLogger
   , LogSeverity(..)
   , LoggingMonad
@@ -36,6 +37,7 @@ instance FromJSON LogSeverity
 data Logger
   = Logger
   { _loggerContext :: Object
+  , _scrubber :: Text -> Text
   , _loggerAction  :: Object -> CallStack -> LogSeverity -> Text -> IO ()
   } deriving Generic
 
@@ -44,12 +46,13 @@ instance NFData Logger
 makeLenses ''Logger
 
 instance Semigroup Logger where
-  (Logger ctx1 l1) <> (Logger ctx2 l2) = Logger ctx'
+  (Logger ctx1 s1 l1) <> (Logger ctx2 s2 l2)
+    = Logger ctx' (s1 . s2)
     $ \ctx stack s t -> l1 ctx stack s t >> l2 ctx stack s t
     where ctx' = ctx1 <> ctx2
 
 instance Monoid Logger where
-  mempty = Logger mempty $ \_ _ _ _ -> pure ()
+  mempty = Logger mempty id $ \_ _ _ _ -> pure ()
 
 type LoggingMonad r m =
   (MonadReader r m, Has Logger r, MonadIO m, HasCallStack)
@@ -73,4 +76,4 @@ logMsgWith logger s t =
   liftIO $ runLogger logger callStack s t
 
 runLogger :: Logger -> CallStack -> LogSeverity -> Text -> IO ()
-runLogger (Logger ctx logger) = logger ctx
+runLogger (Logger ctx scrubber logger) cs ls txt = logger ctx cs ls (scrubber txt)
