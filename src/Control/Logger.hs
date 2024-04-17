@@ -3,6 +3,8 @@ module Control.Logger
   ( Logger
   , loggerContext
   , scrubber
+  , censor
+  , censorWith
   , logMsg
   , logMsgWith
   , logInfo
@@ -34,6 +36,7 @@ module Control.Logger
   , st
   , ToObject(..)
   , withScrubber
+  , censoringWith
   , censoring
   ) where
 
@@ -51,6 +54,7 @@ import           GHC.Stack
 import           Katip                   (ToObject (..))
 import           System.Log.FastLogger
 import           Text.Shakespeare.Text   (st)
+-- import Control.Monad.RWS (censor)
 #if MIN_VERSION_mtl(2,3,0)
 import Control.Monad
 import Control.Monad.IO.Class
@@ -108,7 +112,21 @@ logErrorWith
   -> m ()
 logErrorWith logger msg = withFrozenCallStack (logMsgWith logger Error msg)
 
--- | Adjust the scrubbing function.
+safeReplace :: Text -> Text -> Text -> Text
+safeReplace what with where_
+  | Text.null what = where_
+  | otherwise = Text.replace what with where_
+
+-- | Add a some text to scrubber
+censorWith :: Text -> Text -> Logger -> Logger
+censorWith replacement needle l =
+  l & scrubber <>~ Endo (safeReplace needle replacement)
+
+-- | Censor with "***"
+censor :: Text -> Logger -> Logger
+censor = censorWith "***"
+
+-- | Run an action with adjusted scrubber
 withScrubber
   :: forall r m a. (Has Logger r, MonadReader r m)
   => (Endo Text -> Endo Text)
@@ -120,14 +138,23 @@ withScrubber scrubF = local expandScrubber
     expandScrubber = over part (over scrubber scrubF)
 
 -- | Run an action while censoring additional text from logs
+censoringWith
+  :: (Has Logger r, MonadReader r m)
+  => Text
+  -> Text
+  -> m a
+  -> m a
+censoringWith replacement txt = withScrubber (<> censored)
+  where
+    censored = Endo (safeReplace txt replacement)
+
+-- | Run an action while censoring additional text from logs
 censoring
   :: (Has Logger r, MonadReader r m)
   => Text
   -> m a
   -> m a
-censoring txt = withScrubber (<> censored)
-  where
-    censored = Endo (Text.replace txt "XXXX")
+censoring = censoringWith "***"
 
 -- | Log exceptions occured in computation and just ignore them.
 tryLogError
