@@ -31,7 +31,7 @@ library
                      , time
                      , unordered-containers
   if !impl(ghcjs)
-    build-depends:     katip
+    build-depends:     katip >= 0.8.8.0
                      , optparse-applicative
   default-language:    Haskell2010
   default-extensions:  RankNTypes

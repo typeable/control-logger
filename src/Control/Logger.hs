@@ -2,6 +2,9 @@
 module Control.Logger
   ( Logger
   , loggerContext
+  , scrubber
+  , censor
+  , censorWith
   , logMsg
   , logMsgWith
   , logInfo
@@ -32,13 +35,18 @@ module Control.Logger
   , compactCallStack
   , st
   , ToObject(..)
+  , withScrubber
+  , censoringWith
+  , censoring
   ) where
 
 import           Control.Has
+import           Control.Lens hiding (censoring)
 import           Control.Logger.Internal
 import           Control.Logger.Orphans  ()
 import           Control.Monad.Catch
 import qualified Data.List               as List
+import           Data.Monoid
 import           Data.Text               (Text)
 import qualified Data.Text               as Text
 import           Data.Time
@@ -46,6 +54,7 @@ import           GHC.Stack
 import           Katip                   (ToObject (..))
 import           System.Log.FastLogger
 import           Text.Shakespeare.Text   (st)
+-- import Control.Monad.RWS (censor)
 #if MIN_VERSION_mtl(2,3,0)
 import Control.Monad
 import Control.Monad.IO.Class
@@ -103,6 +112,50 @@ logErrorWith
   -> m ()
 logErrorWith logger msg = withFrozenCallStack (logMsgWith logger Error msg)
 
+safeReplace :: Text -> Text -> Text -> Text
+safeReplace what with where_
+  | Text.null what = where_
+  | otherwise = Text.replace what with where_
+
+-- | Add a some text to scrubber
+censorWith :: Text -> Text -> Logger -> Logger
+censorWith replacement needle l =
+  l & scrubber <>~ Endo (safeReplace needle replacement)
+
+-- | Censor with "***"
+censor :: Text -> Logger -> Logger
+censor = censorWith "***"
+
+-- | Run an action with adjusted scrubber
+withScrubber
+  :: forall r m a. (Has Logger r, MonadReader r m)
+  => (Endo Text -> Endo Text)
+  -> m a
+  -> m a
+withScrubber scrubF = local expandScrubber
+  where
+    expandScrubber :: r -> r
+    expandScrubber = over part (over scrubber scrubF)
+
+-- | Run an action while censoring additional text from logs
+censoringWith
+  :: (Has Logger r, MonadReader r m)
+  => Text
+  -> Text
+  -> m a
+  -> m a
+censoringWith replacement txt = withScrubber (<> censored)
+  where
+    censored = Endo (safeReplace txt replacement)
+
+-- | Run an action while censoring additional text from logs
+censoring
+  :: (Has Logger r, MonadReader r m)
+  => Text
+  -> m a
+  -> m a
+censoring = censoringWith "***"
+
 -- | Log exceptions occured in computation and just ignore them.
 tryLogError
   :: (MonadIO m, MonadCatch m, Has Logger r, MonadReader r m)
@@ -153,14 +206,14 @@ fileLogger :: MonadIO m => FilePath -> m Logger
 fileLogger fp = fastFunc <$> liftIO (newFileLoggerSet defaultBufSize fp)
 
 silentLogger :: Logger
-silentLogger = Logger mempty (\_ _ _ _ -> return ())
+silentLogger = Logger mempty mempty (\_ _ _ _ -> return ())
 
 -- | Logger which flushes buffer after each message. This is useful with
 -- stderrLogger.
 flushingFastFunc
   :: LogSeverity -> LoggerSet -> Logger
 flushingFastFunc minLogLevel loggerSet =
-  Logger mempty $ \_ stack logLevel msg ->
+  Logger mempty mempty $ \_ stack logLevel msg ->
     when (logLevel >= minLogLevel) $ do
       ts <- getCurrentTime
       pushLogStr loggerSet
@@ -184,14 +237,14 @@ flushingStderrLogger =
 -- | Make our outdated 'Logger' of fast-logger's 'LoggerSet'
 fastFunc :: LoggerSet -> Logger
 fastFunc loggerSet =
-  Logger mempty $ \_ _ _ msg -> pushLogStr loggerSet $ toLogStr msg
+  Logger mempty mempty $ \_ _ _ msg -> pushLogStr loggerSet $ toLogStr msg
 
 type LogSource = Text
 
 -- | Default logger tests and same things.
 defaultFastFunc :: LogSource -> LogSeverity -> LoggerSet -> Logger
 defaultFastFunc loc minLogLevel loggerSet =
-  Logger mempty $ \_ stack s msg -> when (s >= minLogLevel) $ do
+  Logger mempty mempty $ \_ stack s msg -> when (s >= minLogLevel) $ do
     ts <- getCurrentTime
     pushLogStr loggerSet $ formatLogStr ts stack loc s (toLogStr msg)
 
