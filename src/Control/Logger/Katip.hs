@@ -17,6 +17,7 @@ import           Data.Aeson hiding (Error)
 import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Builder as T.Builder
+import           GHC.Stack
 import           Katip as K hiding (logMsg)
 import           Katip.Core (LocJs(..), ProcessIDJs(..))
 import           Katip.Monadic (KatipContextTState(..))
@@ -56,9 +57,10 @@ instance LogItem Object where
   payloadKeys _ _  = AllKeys
 
 getKatipLogger :: KatipContextTState -> Logger
-getKatipLogger katipCtx = Logger (toObject . ltsContext $ katipCtx) mempty
-  $ \ ctx stack s msg ->
-    let ?callStack = stack
-    in
-      flip runEnvT katipCtx {ltsContext = liftPayload ctx}
-        $ logLocM (logSeverityToKSeverity s) (logStr msg)
+getKatipLogger katipCtx = withFrozenCallStack $
+  Logger (toObject . ltsContext $ katipCtx) mempty
+    $ \ ctx stack s msg ->
+      let ?callStack = stack
+      in
+        flip runEnvT katipCtx {ltsContext = liftPayload ctx}
+          $ logLocM (logSeverityToKSeverity s) (logStr msg)
