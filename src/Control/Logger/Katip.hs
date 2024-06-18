@@ -57,10 +57,9 @@ instance LogItem Object where
   payloadKeys _ _  = AllKeys
 
 getKatipLogger :: KatipContextTState -> Logger
-getKatipLogger katipCtx = withFrozenCallStack $
-  Logger (toObject . ltsContext $ katipCtx) mempty
-    $ \ ctx stack s msg ->
-      let ?callStack = stack
-      in
-        flip runEnvT katipCtx {ltsContext = liftPayload ctx}
-          $ logLocM (logSeverityToKSeverity s) (logStr msg)
+getKatipLogger katipCtx = Logger (toObject . ltsContext $ katipCtx) mempty
+  $ \ ctx stack s msg ->
+    let ?callStack = stack
+    in
+      withFrozenCallStack $ flip runEnvT katipCtx {ltsContext = liftPayload ctx}
+        $ logLocM (logSeverityToKSeverity s) (logStr msg)
