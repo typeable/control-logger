@@ -17,7 +17,7 @@ module Control.Logger.Internal
 import Control.Has
 import Control.Lens
 import Control.DeepSeq
-import Data.Aeson (ToJSON, FromJSON, Object)
+import Data.Aeson (ToJSON, FromJSON, Object, Value(..))
 import Data.Text (Text)
 import Data.Monoid
 import GHC.Stack
@@ -79,4 +79,18 @@ logMsgWith logger s t =
   liftIO $ runLogger logger callStack s t
 
 runLogger :: Logger -> CallStack -> LogSeverity -> Text -> IO ()
-runLogger (Logger ctx theScrubber logger) cs ls txt = logger ctx cs ls (appEndo theScrubber txt)
+runLogger (Logger ctx theScrubber logger) cs ls txt
+  = logger (scrubContext theScrubber ctx) cs ls (appEndo theScrubber txt)
+
+
+scrubContext :: Endo Text -> Object -> Object
+scrubContext theScrubber = fmap doScrub
+  where
+  doScrub :: Value -> Value
+  doScrub = \case
+    Object object -> Object (fmap doScrub object)
+    Array array -> Array (fmap doScrub array)
+    String string -> String (appEndo theScrubber string)
+    n@Number{} -> n
+    b@Bool{} -> b
+    n@Null -> n
