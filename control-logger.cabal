@@ -19,13 +19,13 @@ library
   exposed-modules:    Control.Logger.Internal
   build-depends:
     , aeson
-    , base
+    , base                  >=4.11
     , bytestring
     , control-has
     , control-has-katip
     , deepseq
     , exceptions
-    , fast-logger
+    , fast-logger           >=2.4.11
     , http-client
     , lens
     , monad-logger
