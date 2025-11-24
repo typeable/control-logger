@@ -44,7 +44,9 @@ import           Control.Has
 import           Control.Lens hiding (censoring)
 import           Control.Logger.Internal
 import           Control.Logger.Orphans  ()
+import           Control.Monad
 import           Control.Monad.Catch
+import           Control.Monad.IO.Class
 import qualified Data.List               as List
 import           Data.Monoid
 import           Data.Text               (Text)
@@ -54,11 +56,6 @@ import           GHC.Stack
 import           Katip                   (ToObject (..))
 import           System.Log.FastLogger
 import           Text.Shakespeare.Text   (st)
--- import Control.Monad.RWS (censor)
-#if MIN_VERSION_mtl(2,3,0)
-import Control.Monad
-import Control.Monad.IO.Class
-#endif
 
 logError
   :: (LoggingMonad r m)

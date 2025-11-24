@@ -16,14 +16,12 @@ module Control.Logger.Internal
 
 import Control.Has
 import Control.Lens
+import Control.Monad.IO.Class
 import Control.DeepSeq
 import Data.Aeson (ToJSON, FromJSON, Object, Value(..))
 import Data.Text (Text)
 import Data.Monoid
 import GHC.Stack
-#if MIN_VERSION_mtl(2,3,0)
-import Control.Monad.IO.Class
-#endif
 
 
 data LogSeverity
