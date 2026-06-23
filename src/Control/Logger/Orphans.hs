@@ -10,7 +10,7 @@ import           Control.EnvT
 import           Control.Has
 import           Control.Logger.Internal
 import           Control.Monad.Logger
-import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import           GHC.Stack
 
 
@@ -21,7 +21,7 @@ instance (Has Logger r, MonadIO m)
     in withFrozenCallStack
       $ logMsg
         (mlLevelToLogSeverity level)
-        (T.pack . show . toLogStr $ msg)
+        (T.decodeUtf8Lenient . fromLogStr . toLogStr $ msg)
 
 locToCallStack :: Loc -> CallStack
 locToCallStack Loc {..} = fromCallSiteList
